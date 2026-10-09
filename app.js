@@ -3,6 +3,13 @@ const $=id=>document.getElementById(id);
 const cfg=window.DONTUM_CONFIG||{};
 let verifiedReady=false;
 let loadingMine=false;
+let targetRatingJobId='';
+function ratingTargetFromUrl(){
+  // Read only after await liff.init(); LIFF first restores extra params from liff.state.
+  const q=new URLSearchParams(window.location.search);
+  const id=String(q.get('job')||'');
+  return q.get('tab')==='mine' && /^MT-\d{4}-\d{4,}$/.test(id) ? id : '';
+}
 function alertUser(message,info=false){$('alert').textContent=String(message);$('alert').classList.toggle('info',info);$('alert').hidden=false;}
 function clearAlert(){$('alert').hidden=true;}
 function showTab(name){
@@ -36,7 +43,7 @@ async function loadMine(){
     const jobs=await api('mine');$('mineList').replaceChildren();
     if(!jobs.length){$('mineList').textContent='ยังไม่มีรายการแจ้งซ่อมที่ผูกกับ LINE นี้';return;}
     jobs.forEach(job=>{
-      const card=document.createElement('article');card.className='job';
+      const card=document.createElement('article');card.className='job';card.dataset.jobId=job.id;
       const top=document.createElement('div');top.className='job-top';
       const title=document.createElement('span');title.className='job-title';title.textContent=job.id;
       const status=document.createElement('span');status.textContent=job.status;
@@ -70,6 +77,21 @@ async function loadMine(){
       }
       $('mineList').append(card);
     });
+    if(targetRatingJobId){
+      const match=Array.from($('mineList').children).find(el=>el.dataset.jobId===targetRatingJobId);
+      if(match){
+        match.classList.add('rating-deeplink-target');
+        match.scrollIntoView({behavior:'smooth',block:'center'});
+        const ratingSelect=match.querySelector('.rating-widget select');
+        if(ratingSelect){
+          ratingSelect.focus({preventScroll:true});
+        }else if(!match.querySelector('.rating-widget')){
+          alertUser('ใบงาน '+targetRatingJobId+' ยังไม่อยู่ในสถานะปิดงาน',true);
+        }
+      }else{
+        alertUser('ไม่พบใบงานในบัญชี LINE นี้ กรุณาเปิดด้วยบัญชี LINE ที่ใช้แจ้งซ่อม',true);
+      }
+    }
   }catch(error){$('mineList').textContent='โหลดรายการไม่สำเร็จ';alertUser(error.message);}
   finally{loadingMine=false;setLoading(b,false);}
 }
@@ -159,6 +181,9 @@ async function init(){
     // Reporter can change this to their actual hospital name.
     if(profile?.displayName)$('reporter').value=profile.displayName.slice(0,100);
     await checkFriendship();
+    // Navigate to the exact ticket only after LIFF init, login, and auth are ready.
+    targetRatingJobId=ratingTargetFromUrl();
+    if(targetRatingJobId)showTab('mine');
   }catch(error){
     $('identity').textContent='⚠️ ยังไม่สามารถเชื่อม LINE';
     alertUser('ไม่สามารถเปิดระบบผ่าน LINE ได้: '+String(error?.message||error));
