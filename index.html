@@ -32,6 +32,9 @@
         <div class="field"><label for="priority">ความเร่งด่วน</label><select id="priority" name="priority"><option>ปกติ</option><option>เร่งด่วน</option><option>วิกฤต</option></select></div>
       </div>
       <div class="field"><label for="description">รายละเอียดอาการเสีย <span>*</span></label><textarea id="description" name="description" rows="4" required minlength="5" maxlength="1500" placeholder="อธิบายปัญหา เช่น ไฟไม่ติด เครื่องปรับอากาศไม่เย็น"></textarea></div>
+      <div class="field photo-field"><label for="photos">📷 รูปอุปกรณ์ที่ชำรุด <small>(ไม่บังคับ สูงสุด 3 รูป)</small></label>
+      <input id="photos" name="photos" type="file" accept="image/*" multiple>
+      <p class="hint">ระบบจะย่อภาพให้อัตโนมัติ ไม่ควรถ่ายติดใบหน้า ชื่อ หรือข้อมูลผู้ป่วย รูปเก็บใน Drive ส่วนตัวของโรงพยาบาล</p><div id="photoPreview" class="photos-preview" aria-live="polite"></div></div>
       <div class="consent"><label class="checkrow"><input type="checkbox" id="consent" required><span>รับทราบว่าระบบใช้ LINE User ID เพื่อเชื่อมใบแจ้งซ่อมกับบัญชี LINE ส่งข้อความสถานะ และแสดงรายการงานของฉัน โดยให้ผู้ดูแลระบบโรงพยาบาลเป็นผู้ควบคุมข้อมูล <a href="#privacy" id="privacyLink">อ่านรายละเอียด</a></span></label></div>
       <button id="submitBtn" class="btn primary" type="submit" disabled>ส่งใบแจ้งซ่อม <span>➜</span></button>
     </form>
@@ -43,7 +46,7 @@
   </section>
   <section id="success" class="successpanel" hidden aria-live="polite"><div class="successicon">✓</div>
     <h2>ส่งแจ้งซ่อมสำเร็จ!</h2><p>ระบบรับเรื่องเรียบร้อยแล้ว</p><div id="successId" class="ticket">—</div>
-    <p id="successNotice">ระบบผูกใบแจ้งซ่อมกับ LINE ของคุณอัตโนมัติแล้ว</p>
+    <p id="photoNotice" hidden></p><p id="successNotice">ระบบผูกใบแจ้งซ่อมกับ LINE ของคุณอัตโนมัติแล้ว</p>
     <div class="successactions"><button id="viewMineBtn" class="btn primary" type="button">ดูสถานะงานของฉัน</button><button id="anotherBtn" class="btn secondary" type="button">แจ้งซ่อมอีกครั้ง</button></div>
   </section>
   <section id="friendPanel" class="friendbanner" hidden><strong>💬 เพิ่มเพื่อน LINE OA</strong><p>กรุณาเพิ่มเพื่อน DONTUM MAINTENANCE และไม่บล็อกบัญชี เพื่อรับแจ้งเตือนสถานะโดยอัตโนมัติ</p><button id="friendBtn" class="btn secondary" type="button">เพิ่มเพื่อน LINE OA</button></section>

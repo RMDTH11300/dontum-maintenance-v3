@@ -48,10 +48,57 @@ async function loadMine(){
       const formatted=date&&!Number.isNaN(date.getTime())?date.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}):'-';
       meta.textContent='ประเภท: '+job.category+' · '+job.department+'\nสถานที่: '+job.location+
         (job.assignedName?' · ผู้รับผิดชอบ: '+job.assignedName:'')+'\nอัปเดตล่าสุด: '+formatted;
-      meta.style.whiteSpace='pre-line';card.append(top,meta);$('mineList').append(card);
+      meta.style.whiteSpace='pre-line';card.append(top,meta);
+      if(job.status==='ปิดงาน'){
+        const wrap=document.createElement('div');wrap.className='rating-widget';
+        if(job.rating){wrap.textContent='⭐ ประเมินแล้ว '+job.rating+'/5 คะแนน';}
+        else{
+          const label=document.createElement('label');label.textContent='ประเมินความพึงพอใจหลังปิดงาน';
+          const select=document.createElement('select');select.setAttribute('aria-label','คะแนนความพึงพอใจ');
+          [5,4,3,2,1].forEach(n=>{const opt=document.createElement('option');opt.value=n;opt.textContent='⭐'.repeat(n)+' ('+n+'/5)';select.append(opt);});
+          const comment=document.createElement('input');comment.maxLength=500;comment.placeholder='ความคิดเห็น (ไม่บังคับ)';comment.setAttribute('aria-label','ความคิดเห็น');
+          const button=document.createElement('button');button.className='btn secondary';button.type='button';button.textContent='ส่งคะแนน';
+          button.addEventListener('click',async()=>{
+            button.disabled=true;
+            try{await api('rate',{id:job.id,score:Number(select.value),comment:comment.value});
+              alertUser('ขอบคุณสำหรับการประเมินงาน '+job.id,true);await loadMine();
+            }catch(e){alertUser(e.message);button.disabled=false;}
+          });
+          wrap.append(label,select,comment,button);
+        }
+        card.append(wrap);
+      }
+      $('mineList').append(card);
     });
   }catch(error){$('mineList').textContent='โหลดรายการไม่สำเร็จ';alertUser(error.message);}
   finally{loadingMine=false;setLoading(b,false);}
+}
+async function compressPhoto(file){
+  if(!/^image\/(jpeg|png|webp|heic|heif)$/.test(file.type))throw new Error('รองรับเฉพาะ JPEG, PNG และ WebP');
+  if(file.size>12000000)throw new Error('รูปต้นฉบับใหญ่เกิน 12 MB');
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((resolve,reject)=>{
+      const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(new Error('อ่านรูปภาพไม่ได้'));image.src=url;
+    });
+    const scale=Math.min(1,960/Math.max(img.width,img.height));
+    const cvs=document.createElement('canvas');cvs.width=Math.max(1,Math.round(img.width*scale));cvs.height=Math.max(1,Math.round(img.height*scale));
+    const ctx=cvs.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,cvs.width,cvs.height);ctx.drawImage(img,0,0,cvs.width,cvs.height);
+    let quality=.72, b64='';
+    for(let i=0;i<6;i++){
+      b64=cvs.toDataURL('image/jpeg',quality).split(',')[1];
+      if(b64.length<850000)break;
+      quality=Math.max(.35,quality-.09);
+    }
+    if(b64.length>850000)throw new Error('รูปภาพใหญ่เกินไป กรุณาเลือกภาพอื่น');
+    return {mime:'image/jpeg',data:b64};
+  }finally{URL.revokeObjectURL(url);}
+}
+function refreshPhotoPreview(){
+  const list=$('photoPreview');list.replaceChildren();
+  const files=Array.from($('photos').files||[]);
+  if(files.length>3){alertUser('เลือกได้สูงสุด 3 รูป');$('photos').value='';return;}
+  files.forEach(f=>{const item=document.createElement('span');item.textContent='📷 '+f.name;list.append(item);});
 }
 async function submitForm(event){
   event.preventDefault();if(!verifiedReady){alertUser('กรุณายืนยันบัญชี LINE ก่อน');return;}
@@ -59,13 +106,20 @@ async function submitForm(event){
   try{
     const form=new FormData($('repairForm'));
     const data=Object.fromEntries(form.entries());
+    delete data.photos;
+    const files=Array.from($('photos').files||[]);
+    if(files.length>3)throw new Error('แนบรูปได้สูงสุด 3 รูป');
+    data.photos=[];
+    for(const f of files)data.photos.push(await compressPhoto(f));
     const result=await api('create',data);
+    $('photoNotice').hidden=!result.photoWarning;
+    $('photoNotice').textContent=result.photoWarning||'';
     $('successId').textContent=result.id;
     $('successNotice').textContent=result.noticeSent
       ?'ผูกใบแจ้งซ่อมกับ LINE ของคุณแล้ว และส่งข้อความยืนยันทาง LINE แล้ว'
       :'ผูกใบแจ้งซ่อมกับ LINE แล้ว แต่ส่งข้อความยืนยันไม่สำเร็จ กรุณาเพิ่มเพื่อนหรือปลดบล็อก LINE OA';
     $('pageCreate').hidden=true;$('pageMine').hidden=true;$('success').hidden=false;
-    $('repairForm').reset();window.scrollTo({top:0,behavior:'smooth'});
+    $('repairForm').reset();$('photoPreview').replaceChildren();window.scrollTo({top:0,behavior:'smooth'});
   }catch(error){alertUser(error.message||'ส่งข้อมูลไม่สำเร็จ');}
   finally{setLoading(btn,false);}
 }
@@ -77,6 +131,7 @@ async function init(){
   $('tabMine').addEventListener('click',()=>showTab('mine'));
   $('refreshBtn').addEventListener('click',loadMine);
   $('repairForm').addEventListener('submit',submitForm);
+  $('photos').addEventListener('change',refreshPhotoPreview);
   $('viewMineBtn').addEventListener('click',()=>showTab('mine'));
   $('anotherBtn').addEventListener('click',()=>showTab('create'));
   $('friendBtn').addEventListener('click',async()=>{
