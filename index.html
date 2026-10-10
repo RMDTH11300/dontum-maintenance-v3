@@ -1,56 +1,94 @@
 <!doctype html>
-<html lang="th"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0d3b57"><meta name="description" content="ระบบแจ้งซ่อมและติดตามงานของโรงพยาบาลดอนตูม ผ่าน LINE OA">
-<title>แจ้งซ่อม • โรงพยาบาลดอนตูม</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
-<script src="config.js" defer></script>
-<script src="app.js" defer></script>
-</head><body>
-<header class="hero"><div class="container">
-  <div class="eyebrow"><span class="emoji">✦</span> DON TUM HOSPITAL <span class="dot">•</span> MAINTENANCE</div>
-  <h1>แจ้งซ่อมง่าย<br><span>ติดตามได้ทุกขั้นตอน</span></h1>
-  <p>แจ้งปัญหาภายในโรงพยาบาลและรับการแจ้งเตือนสถานะผ่าน LINE ส่วนตัว</p>
-  <div class="identity" id="identity">กำลังเชื่อมต่อบัญชี LINE…</div>
-</div></header>
-<main class="container">
-  <div id="alert" class="alert" role="status" aria-live="polite" hidden></div>
-  <div class="tabs" role="tablist" aria-label="เลือกหน้าการใช้งาน">
-    <button id="tabCreate" type="button" role="tab" aria-selected="true" class="active">✍️ แจ้งซ่อมใหม่</button>
-    <button id="tabMine" type="button" role="tab" aria-selected="false">🧾 งานของฉัน</button>
-  </div>
-  <section id="pageCreate" class="panel" role="tabpanel" aria-labelledby="tabCreate">
-    <div class="panelhead"><div><div class="kicker">NEW REQUEST</div><h2>แจ้งซ่อมใหม่</h2><p>กรอกข้อมูลปัญหาที่พบ ช่างจะได้รับเรื่องผ่านระบบทันที</p></div><div class="small-icon">🔧</div></div>
-    <form id="repairForm" autocomplete="on">
-      <div class="fields">
-        <div class="field"><label for="reporter">ชื่อผู้แจ้ง <span>*</span></label><input id="reporter" name="reporter" maxlength="100" minlength="2" required placeholder="ชื่อ–สกุล"></div>
-        <div class="field"><label for="department">หน่วยงาน <span>*</span></label><input id="department" name="department" maxlength="100" minlength="2" required placeholder="เช่น งานกายภาพบำบัด"></div>
-        <div class="field"><label for="category">ประเภทงาน <span>*</span></label><select id="category" name="category" required><option value="">เลือกประเภทงาน</option><option>ไฟฟ้า</option><option>ประปา</option><option>เครื่องปรับอากาศ</option><option>อาคาร/สถานที่</option><option>คอมพิวเตอร์/เครือข่าย</option><option>เครื่องมือ/อุปกรณ์</option><option>อื่น ๆ</option></select></div>
-        <div class="field"><label for="location">สถานที่/ห้อง <span>*</span></label><input id="location" name="location" maxlength="150" required placeholder="อาคาร ชั้น หรือเลขห้อง"></div>
-        <div class="field"><label for="assetCode">รหัสครุภัณฑ์ <small>(ถ้ามี)</small></label><input id="assetCode" name="assetCode" maxlength="100" placeholder="หมายเลขครุภัณฑ์"></div>
-        <div class="field"><label for="priority">ความเร่งด่วน</label><select id="priority" name="priority"><option>ปกติ</option><option>เร่งด่วน</option><option>วิกฤต</option></select></div>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d3b57">
+  <meta name="description" content="ระบบแจ้งซ่อมและติดตามงาน โรงพยาบาลดอนตูม ผ่าน LINE OA">
+  <title>แจ้งซ่อม • โรงพยาบาลดอนตูม</title>
+  <link rel="stylesheet" href="style.css?v=20261010-1">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
+  <script src="config.js" defer></script>
+  <script src="app.js?v=20261010-1" defer></script>
+</head>
+<body>
+  <header class="hero">
+    <div class="container hero-layout">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="emoji">✦</span> DON TUM HOSPITAL <span class="dot">•</span> MAINTENANCE</div>
+        <h1>แจ้งซ่อมง่าย<br><span>ติดตามได้ทุกขั้นตอน</span></h1>
+        <p>แจ้งปัญหา ติดตามงาน และรับแจ้งเตือนสถานะผ่าน LINE ส่วนตัว</p>
+        <div class="identity" id="identity">กำลังเชื่อมต่อบัญชี LINE…</div>
       </div>
-      <div class="field"><label for="description">รายละเอียดอาการเสีย <span>*</span></label><textarea id="description" name="description" rows="4" required minlength="5" maxlength="1500" placeholder="อธิบายปัญหา เช่น ไฟไม่ติด เครื่องปรับอากาศไม่เย็น"></textarea></div>
-      <div class="field photo-field"><label for="photos">📷 รูปอุปกรณ์ที่ชำรุด <small>(ไม่บังคับ สูงสุด 3 รูป)</small></label>
-      <input id="photos" name="photos" type="file" accept="image/*" multiple>
-      <p class="hint">ระบบจะย่อภาพให้อัตโนมัติ ไม่ควรถ่ายติดใบหน้า ชื่อ หรือข้อมูลผู้ป่วย รูปเก็บใน Drive ส่วนตัวของโรงพยาบาล</p><div id="photoPreview" class="photos-preview" aria-live="polite"></div></div>
-      <div class="consent"><label class="checkrow"><input type="checkbox" id="consent" required><span>รับทราบว่าระบบใช้ LINE User ID เพื่อเชื่อมใบแจ้งซ่อมกับบัญชี LINE ส่งข้อความสถานะ และแสดงรายการงานของฉัน โดยให้ผู้ดูแลระบบโรงพยาบาลเป็นผู้ควบคุมข้อมูล <a href="#privacy" id="privacyLink">อ่านรายละเอียด</a></span></label></div>
-      <button id="submitBtn" class="btn primary" type="submit" disabled>ส่งใบแจ้งซ่อม <span>➜</span></button>
-    </form>
-  </section>
-  <section id="pageMine" class="panel" role="tabpanel" aria-labelledby="tabMine" hidden>
-    <div class="panelhead"><div><div class="kicker">MY REPAIRS</div><h2>งานแจ้งซ่อมของฉัน</h2><p>แสดงเฉพาะใบแจ้งซ่อมที่ผูกกับบัญชี LINE นี้</p></div><div class="small-icon">🧾</div></div>
-    <button id="refreshBtn" class="btn secondary" type="button">↻ โหลดสถานะล่าสุด</button>
-    <div id="mineList" class="list" aria-live="polite"><div class="empty">กดโหลดสถานะเพื่อดูรายการของคุณ</div></div>
-  </section>
-  <section id="success" class="successpanel" hidden aria-live="polite"><div class="successicon">✓</div>
-    <h2>ส่งแจ้งซ่อมสำเร็จ!</h2><p>ระบบรับเรื่องเรียบร้อยแล้ว</p><div id="successId" class="ticket">—</div>
-    <p id="photoNotice" hidden></p><p id="successNotice">ระบบผูกใบแจ้งซ่อมกับ LINE ของคุณอัตโนมัติแล้ว</p>
-    <div class="successactions"><button id="viewMineBtn" class="btn primary" type="button">ดูสถานะงานของฉัน</button><button id="anotherBtn" class="btn secondary" type="button">แจ้งซ่อมอีกครั้ง</button></div>
-  </section>
-  <section id="friendPanel" class="friendbanner" hidden><strong>💬 เพิ่มเพื่อน LINE OA</strong><p>กรุณาเพิ่มเพื่อน DONTUM MAINTENANCE และไม่บล็อกบัญชี เพื่อรับแจ้งเตือนสถานะโดยอัตโนมัติ</p><button id="friendBtn" class="btn secondary" type="button">เพิ่มเพื่อน LINE OA</button></section>
-  <section class="privacy" id="privacy"><h3>การใช้ข้อมูล</h3><p>โรงพยาบาลใช้ชื่อผู้แจ้ง หน่วยงาน รายละเอียดงาน และตัวระบุบัญชี LINE เพื่อดำเนินการซ่อม ติดตามสถานะ และส่งการแจ้งเตือน ข้อมูลจะถูกเปิดดูโดยเจ้าหน้าที่ที่ได้รับสิทธิ์เท่านั้น หลีกเลี่ยงการใส่ข้อมูลผู้ป่วยในรายละเอียดงาน โปรดติดต่อผู้ดูแลระบบโรงพยาบาลหากต้องการสอบถามเรื่องข้อมูลส่วนบุคคล</p></section>
-</main>
-<footer>โรงพยาบาลดอนตูม · Maintenance Service <span>© 2026</span></footer>
-</body></html>
+      <div class="hero-art" aria-hidden="true">
+        <div class="hero-art-icon">🔧</div>
+        <div class="hero-art-caption">แจ้งง่าย · ติดตามได้</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="alert" class="alert" role="alert" aria-live="assertive" hidden></div>
+    <nav class="tabs" role="tablist" aria-label="เลือกหน้าการใช้งาน">
+      <button id="tabCreate" type="button" role="tab" aria-controls="pageCreate" aria-selected="true" class="active">✍️ แจ้งซ่อมใหม่</button>
+      <button id="tabMine" type="button" role="tab" aria-controls="pageMine" aria-selected="false">🧾 งานของฉัน</button>
+    </nav>
+
+    <section id="pageCreate" class="panel create-panel" role="tabpanel" aria-labelledby="tabCreate">
+      <div class="panelhead"><div><div class="kicker">NEW REQUEST</div><h2>แจ้งซ่อมใหม่</h2><p>กรอกข้อมูลให้ครบเพื่อให้ช่างทราบปัญหาและสถานที่ซ่อม</p></div><div class="small-icon">🔧</div></div>
+      <div class="form-steps" aria-label="ขั้นตอนการกรอกใบแจ้งซ่อม"><span><b>1</b> ผู้แจ้ง</span><span class="step-arrow">›</span><span><b>2</b> รายละเอียดงาน</span><span class="step-arrow">›</span><span><b>3</b> ส่งเรื่อง</span></div>
+      <form id="repairForm" autocomplete="on">
+        <div class="form-section"><div class="section-heading"><span class="section-number">01</span><div><h3>ข้อมูลผู้แจ้งและสถานที่</h3><p>กรอกชื่อและระบุจุดที่ต้องการให้ช่างเข้าซ่อม</p></div></div>
+          <div class="fields">
+            <div class="field"><label for="reporter">ชื่อผู้แจ้ง <span>*</span></label><input id="reporter" name="reporter" maxlength="100" minlength="2" required placeholder="ชื่อ–สกุล"></div>
+            <div class="field"><label for="department">หน่วยงาน <span>*</span></label><input id="department" name="department" maxlength="100" minlength="2" required placeholder="เช่น งานกายภาพบำบัด"></div>
+            <div class="field"><label for="category">ประเภทงาน <span>*</span></label><select id="category" name="category" required><option value="">เลือกประเภทงาน</option><option>ไฟฟ้า</option><option>ประปา</option><option>เครื่องปรับอากาศ</option><option>อาคาร/สถานที่</option><option>คอมพิวเตอร์/เครือข่าย</option><option>เครื่องมือ/อุปกรณ์</option><option>อื่น ๆ</option></select></div>
+            <div class="field"><label for="location">สถานที่/ห้อง <span>*</span></label><input id="location" name="location" maxlength="150" required placeholder="อาคาร ชั้น หรือเลขห้อง"></div>
+          </div>
+        </div>
+        <div class="form-section"><div class="section-heading"><span class="section-number">02</span><div><h3>รายละเอียดปัญหา</h3><p>ระบุข้อมูลให้ชัดเจน พร้อมรูปประกอบหากมี</p></div></div>
+          <div class="fields">
+            <div class="field"><label for="assetCode">รหัสครุภัณฑ์ <small>(ถ้ามี)</small></label><input id="assetCode" name="assetCode" maxlength="100" placeholder="หมายเลขครุภัณฑ์"></div>
+            <div class="field"><label for="priority">ความเร่งด่วน</label><select id="priority" name="priority"><option>ปกติ</option><option>เร่งด่วน</option><option>วิกฤต</option></select></div>
+          </div>
+          <div class="field"><label for="description">รายละเอียดอาการเสีย <span>*</span></label><textarea id="description" name="description" rows="4" required minlength="5" maxlength="1500" placeholder="อธิบายปัญหา เช่น ไฟไม่ติด เครื่องปรับอากาศไม่เย็น"></textarea></div>
+          <div class="field photo-field"><label for="photos">📷 รูปอุปกรณ์ที่ชำรุด <small>(ไม่บังคับ สูงสุด 3 รูป)</small></label>
+            <div class="upload-surface"><span class="upload-symbol" aria-hidden="true">▧</span><div><strong>เลือกภาพถ่ายอุปกรณ์</strong><span>JPEG, PNG หรือ WebP · สูงสุด 3 รูป</span></div><input id="photos" name="photos" type="file" accept="image/*" multiple></div>
+            <div id="photoPreview" class="photos-preview" aria-live="polite"></div>
+            <p class="hint">ระบบย่อภาพให้อัตโนมัติ โปรดหลีกเลี่ยงภาพที่มีข้อมูลผู้ป่วย</p>
+          </div>
+        </div>
+        <div class="form-section form-section-last"><div class="section-heading"><span class="section-number">03</span><div><h3>ตรวจสอบและส่งแจ้งซ่อม</h3><p>เมื่อส่งสำเร็จ ระบบจะออกเลขที่ใบงานและแจ้งเตือนผ่าน LINE</p></div></div>
+          <div class="consent"><label class="checkrow"><input type="checkbox" id="consent" required><span>รับทราบว่าระบบใช้ LINE User ID เพื่อเชื่อมใบแจ้งซ่อมกับบัญชี LINE ส่งข้อความสถานะ และแสดงรายการงานของฉัน โดยให้ผู้ดูแลระบบโรงพยาบาลเป็นผู้ควบคุมข้อมูล <a href="#privacy" id="privacyLink">อ่านรายละเอียด</a></span></label></div>
+          <button id="submitBtn" class="btn primary" type="submit" disabled>ส่งใบแจ้งซ่อม <span>➜</span></button>
+        </div>
+      </form>
+    </section>
+
+    <section id="pageMine" class="panel mine-panel" role="tabpanel" aria-labelledby="tabMine" hidden>
+      <div class="panelhead mine-heading"><div><div class="kicker">MY REPAIRS</div><h2>งานแจ้งซ่อมของฉัน</h2><p>ติดตามเฉพาะงานที่แจ้งด้วยบัญชี LINE นี้</p></div><div class="small-icon">🧾</div></div>
+      <div class="mine-tools"><label class="mine-search"><span class="search-icon" aria-hidden="true">⌕</span><span class="sr-only">ค้นหาเลขใบงานหรือประเภทงาน</span><input id="mineSearch" type="search" placeholder="ค้นหาเลขใบงาน ประเภท หรือหน่วยงาน" autocomplete="off"></label><button id="refreshBtn" class="btn secondary" type="button">↻ อัปเดต</button></div>
+      <div class="mine-overview" aria-label="สรุปงานของฉัน">
+        <div class="overview-card"><span>ทั้งหมด</span><strong id="countAll">—</strong></div>
+        <div class="overview-card"><span>รอดำเนินการ</span><strong id="countOpen">—</strong></div>
+        <div class="overview-card"><span>เสร็จสิ้น</span><strong id="countDone">—</strong></div>
+      </div>
+      <div class="status-section-label">กรองงานตามสถานะ</div>
+      <div id="mineFilters" class="status-filters" role="group" aria-label="กรองสถานะงานแจ้งซ่อม">
+        <button type="button" class="filter-chip active" data-filter="all" aria-pressed="true">ทั้งหมด <span data-count="all">0</span></button>
+        <button type="button" class="filter-chip" data-filter="wait" aria-pressed="false">รอรับงาน <span data-count="wait">0</span></button>
+        <button type="button" class="filter-chip" data-filter="active" aria-pressed="false">กำลังดำเนินการ <span data-count="active">0</span></button>
+        <button type="button" class="filter-chip" data-filter="parts" aria-pressed="false">รออะไหล่ / ส่งภายนอก <span data-count="parts">0</span></button>
+        <button type="button" class="filter-chip" data-filter="done" aria-pressed="false">เสร็จสิ้น <span data-count="done">0</span></button>
+      </div>
+      <div class="mine-list-head"><strong id="mineListTitle">รายการทั้งหมด</strong><span id="mineVisibleCount" aria-live="polite"></span></div>
+      <div id="mineList" class="list" aria-live="polite"><div class="empty">กดอัปเดตเพื่อดูรายการแจ้งซ่อมของคุณ</div></div>
+    </section>
+
+    <section id="success" class="successpanel" hidden aria-live="polite"><div class="successicon">✓</div><h2>ส่งแจ้งซ่อมสำเร็จ!</h2><p>ระบบรับเรื่องเรียบร้อยแล้ว</p><div id="successId" class="ticket">—</div><p id="photoNotice" hidden></p><p id="successNotice">ระบบผูกใบแจ้งซ่อมกับ LINE ของคุณอัตโนมัติแล้ว</p><div class="successactions"><button id="viewMineBtn" class="btn primary" type="button">ดูสถานะงานของฉัน</button><button id="anotherBtn" class="btn secondary" type="button">แจ้งซ่อมอีกครั้ง</button></div></section>
+    <section id="friendPanel" class="friendbanner" hidden><strong>💬 เพิ่มเพื่อน LINE OA</strong><p>กรุณาเพิ่มเพื่อนบัญชี “แจ้งซ่อม รพ.ดอนตูม” และไม่บล็อกบัญชี เพื่อรับแจ้งเตือนสถานะโดยอัตโนมัติ</p><button id="friendBtn" class="btn secondary" type="button">เพิ่มเพื่อน LINE OA</button></section>
+    <section class="privacy" id="privacy"><h3>การใช้ข้อมูล</h3><p>โรงพยาบาลใช้ชื่อผู้แจ้ง หน่วยงาน รายละเอียดงาน และตัวระบุบัญชี LINE เพื่อดำเนินการซ่อม ติดตามสถานะ และส่งการแจ้งเตือน ข้อมูลจะถูกเปิดดูโดยเจ้าหน้าที่ที่ได้รับสิทธิ์เท่านั้น หลีกเลี่ยงการใส่ข้อมูลผู้ป่วยในรายละเอียดงาน โปรดติดต่อผู้ดูแลระบบโรงพยาบาลหากต้องการสอบถามเรื่องข้อมูลส่วนบุคคล</p></section>
+  </main>
+  <footer>โรงพยาบาลดอนตูม · Maintenance Service <span>© 2026</span></footer>
+</body>
+</html>

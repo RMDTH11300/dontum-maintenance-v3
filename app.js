@@ -4,6 +4,10 @@ const cfg=window.DONTUM_CONFIG||{};
 let verifiedReady=false;
 let loadingMine=false;
 let targetRatingJobId='';
+let mineJobs=[];
+let mineLoaded=false;
+let mineFilter='all';
+let mineQuery='';
 function ratingTargetFromUrl(){
   // Read only after await liff.init(); LIFF first restores extra params from liff.state.
   const q=new URLSearchParams(window.location.search);
@@ -35,65 +39,134 @@ async function api(path,data){
   if(!response.ok||!result.ok)throw new Error(result.error||'ไม่สามารถดำเนินการได้');
   return result.result;
 }
+// Filters run only on tickets already returned for the verified LINE account.
+const mineFilterLabels={all:'รายการทั้งหมด',wait:'งานรอรับ',active:'กำลังดำเนินการ',parts:'รออะไหล่ / ส่งซ่อมภายนอก',done:'งานเสร็จสิ้น'};
+function statusGroup(status){
+  if(status==='รอรับงาน')return 'wait';
+  if(['รับงานแล้ว','กำลังซ่อม'].includes(status))return 'active';
+  if(['รออะไหล่','ส่งซ่อมภายนอก'].includes(status))return 'parts';
+  if(['ซ่อมเสร็จ','ปิดงาน'].includes(status))return 'done';
+  return 'other';
+}
+function statusPillClass(status){
+  if(status==='ปิดงาน')return 'closed';
+  if(status==='ซ่อมเสร็จ')return 'done';
+  if(statusGroup(status)==='parts')return 'parts';
+  if(statusGroup(status)==='active')return 'active';
+  return 'wait';
+}
+function countGroups(){
+  const counts={all:mineJobs.length,wait:0,active:0,parts:0,done:0};
+  mineJobs.forEach(job=>{const group=statusGroup(job.status);if(Object.prototype.hasOwnProperty.call(counts,group))counts[group]++;});
+  $('countAll').textContent=String(counts.all);
+  $('countOpen').textContent=String(counts.all-counts.done);
+  $('countDone').textContent=String(counts.done);
+  document.querySelectorAll('[data-count]').forEach(el=>{el.textContent=String(counts[el.dataset.count]||0);});
+}
+function selectMineFilter(next){
+  if(!Object.prototype.hasOwnProperty.call(mineFilterLabels,next))return;
+  mineFilter=next;
+  document.querySelectorAll('#mineFilters [data-filter]').forEach(b=>{
+    const active=b.dataset.filter===next;
+    b.classList.toggle('active',active);
+    b.setAttribute('aria-pressed',String(active));
+  });
+  renderMine();
+}
+function jobMetaRow(label,value){
+  const line=document.createElement('div');line.className='job-meta-item';
+  const name=document.createElement('span');name.className='job-meta-label';name.textContent=label;
+  const val=document.createElement('span');val.textContent=String(value||'-');
+  line.append(name,val);return line;
+}
+function renderMine(){
+  const list=$('mineList');list.replaceChildren();
+  $('mineListTitle').textContent=mineFilterLabels[mineFilter]||mineFilterLabels.all;
+  const search=mineQuery.trim().toLocaleLowerCase('th');
+  const matching=mineJobs.filter(job=>
+    (mineFilter==='all'||statusGroup(job.status)===mineFilter)&&
+    (!search||[job.id,job.category,job.department,job.location,job.assignedName,job.status]
+      .some(x=>String(x||'').toLocaleLowerCase('th').includes(search))));
+  $('mineVisibleCount').textContent=mineLoaded?`แสดง ${matching.length} จาก ${mineJobs.length} งาน`:'';
+  if(!mineLoaded){const blank=document.createElement('div');blank.className='empty';blank.textContent='กดอัปเดตเพื่อดูรายการแจ้งซ่อมของคุณ';list.append(blank);return;}
+  if(!matching.length){
+    const blank=document.createElement('div');blank.className='empty';
+    blank.textContent=mineJobs.length===0?'ยังไม่มีรายการแจ้งซ่อมที่ผูกกับ LINE นี้':'ไม่พบงานในหมวดนี้ ลองเลือกสถานะอื่นหรือเปลี่ยนคำค้นหา';
+    list.append(blank);return;
+  }
+  matching.forEach(job=>{
+    const card=document.createElement('article');card.className='job';card.dataset.jobId=String(job.id);
+    const top=document.createElement('div');top.className='job-top';
+    const title=document.createElement('span');title.className='job-title';title.textContent=String(job.id);
+    const status=document.createElement('span');status.className='pill '+statusPillClass(job.status);status.textContent=String(job.status||'ไม่ระบุ');
+    top.append(title,status);
+    const type=document.createElement('div');type.className='job-type';type.textContent=String(job.category||'งานซ่อม');
+    const meta=document.createElement('div');meta.className='job-meta';
+    meta.append(jobMetaRow('หน่วยงาน:',job.department),jobMetaRow('สถานที่:',job.location));
+    if(job.assignedName)meta.append(jobMetaRow('ช่างผู้รับผิดชอบ:',job.assignedName));
+    const updated=document.createElement('div');updated.className='job-updated';
+    const date=job.updatedAt?new Date(job.updatedAt):null;
+    const formatted=date&&!Number.isNaN(date.getTime())?date.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}):'-';
+    updated.textContent='อัปเดตล่าสุด: '+formatted;
+    card.append(top,type,meta,updated);
+    // Keep the same rating API and the one-rating-per-closed-ticket server rule.
+    if(job.status==='ปิดงาน'){
+      const wrap=document.createElement('div');wrap.className='rating-widget';
+      if(job.rating){wrap.textContent='⭐ ประเมินแล้ว '+job.rating+'/5 คะแนน';}
+      else{
+        const label=document.createElement('label');label.textContent='⭐ ประเมินความพึงพอใจหลังปิดงาน';
+        const select=document.createElement('select');select.setAttribute('aria-label','คะแนนความพึงพอใจ');
+        [5,4,3,2,1].forEach(n=>{const opt=document.createElement('option');opt.value=n;opt.textContent='⭐'.repeat(n)+' ('+n+'/5)';select.append(opt);});
+        const comment=document.createElement('input');comment.maxLength=500;comment.placeholder='ความคิดเห็น (ไม่บังคับ)';comment.setAttribute('aria-label','ความคิดเห็น');
+        const button=document.createElement('button');button.className='btn secondary';button.type='button';button.textContent='ส่งคะแนน';
+        button.addEventListener('click',async()=>{
+          button.disabled=true;
+          try{await api('rate',{id:job.id,score:Number(select.value),comment:comment.value});
+            alertUser('ขอบคุณสำหรับการประเมินงาน '+job.id,true);await loadMine();
+          }catch(e){alertUser(e.message);button.disabled=false;}
+        });
+        wrap.append(label,select,comment,button);
+      }
+      card.append(wrap);
+    }
+    if(job.id===targetRatingJobId)card.classList.add('rating-deeplink-target');
+    list.append(card);
+  });
+  if(targetRatingJobId){
+    const match=Array.from(list.children).find(el=>el.dataset.jobId===targetRatingJobId);
+    if(match){
+      match.scrollIntoView({behavior:'smooth',block:'center'});
+      const select=match.querySelector('.rating-widget select');
+      if(select)select.focus({preventScroll:true});
+      else if(!match.querySelector('.rating-widget'))alertUser('ใบงาน '+targetRatingJobId+' ยังไม่อยู่ในสถานะปิดงาน',true);
+    }
+  }
+}
 async function loadMine(){
   if(!verifiedReady||loadingMine)return;
-  loadingMine=true;const b=$('refreshBtn');setLoading(b,true,'กำลังโหลด…');
-  $('mineList').textContent='กำลังโหลดรายการแจ้งซ่อม…';
+  loadingMine=true;const button=$('refreshBtn');setLoading(button,true,'กำลังโหลด…');
+  const list=$('mineList');list.replaceChildren();
+  const msg=document.createElement('div');msg.className='empty';msg.textContent='กำลังโหลดรายการแจ้งซ่อม…';list.append(msg);
   try{
-    const jobs=await api('mine');$('mineList').replaceChildren();
-    if(!jobs.length){$('mineList').textContent='ยังไม่มีรายการแจ้งซ่อมที่ผูกกับ LINE นี้';return;}
-    jobs.forEach(job=>{
-      const card=document.createElement('article');card.className='job';card.dataset.jobId=job.id;
-      const top=document.createElement('div');top.className='job-top';
-      const title=document.createElement('span');title.className='job-title';title.textContent=job.id;
-      const status=document.createElement('span');status.textContent=job.status;
-      status.className='pill'+(['รอรับงาน','รออะไหล่','ส่งซ่อมภายนอก'].includes(job.status)?' wait':
-        job.status==='ซ่อมเสร็จ'?' done':job.status==='ปิดงาน'?' closed':'');
-      top.append(title,status);
-      const meta=document.createElement('div');meta.className='job-meta';
-      const date=job.updatedAt?new Date(job.updatedAt):null;
-      const formatted=date&&!Number.isNaN(date.getTime())?date.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}):'-';
-      meta.textContent='ประเภท: '+job.category+' · '+job.department+'\nสถานที่: '+job.location+
-        (job.assignedName?' · ผู้รับผิดชอบ: '+job.assignedName:'')+'\nอัปเดตล่าสุด: '+formatted;
-      meta.style.whiteSpace='pre-line';card.append(top,meta);
-      if(job.status==='ปิดงาน'){
-        const wrap=document.createElement('div');wrap.className='rating-widget';
-        if(job.rating){wrap.textContent='⭐ ประเมินแล้ว '+job.rating+'/5 คะแนน';}
-        else{
-          const label=document.createElement('label');label.textContent='ประเมินความพึงพอใจหลังปิดงาน';
-          const select=document.createElement('select');select.setAttribute('aria-label','คะแนนความพึงพอใจ');
-          [5,4,3,2,1].forEach(n=>{const opt=document.createElement('option');opt.value=n;opt.textContent='⭐'.repeat(n)+' ('+n+'/5)';select.append(opt);});
-          const comment=document.createElement('input');comment.maxLength=500;comment.placeholder='ความคิดเห็น (ไม่บังคับ)';comment.setAttribute('aria-label','ความคิดเห็น');
-          const button=document.createElement('button');button.className='btn secondary';button.type='button';button.textContent='ส่งคะแนน';
-          button.addEventListener('click',async()=>{
-            button.disabled=true;
-            try{await api('rate',{id:job.id,score:Number(select.value),comment:comment.value});
-              alertUser('ขอบคุณสำหรับการประเมินงาน '+job.id,true);await loadMine();
-            }catch(e){alertUser(e.message);button.disabled=false;}
-          });
-          wrap.append(label,select,comment,button);
-        }
-        card.append(wrap);
-      }
-      $('mineList').append(card);
-    });
+    const jobs=await api('mine');
+    if(!Array.isArray(jobs))throw new Error('รูปแบบข้อมูลรายการงานไม่ถูกต้อง');
+    mineJobs=jobs;mineLoaded=true;
     if(targetRatingJobId){
-      const match=Array.from($('mineList').children).find(el=>el.dataset.jobId===targetRatingJobId);
-      if(match){
-        match.classList.add('rating-deeplink-target');
-        match.scrollIntoView({behavior:'smooth',block:'center'});
-        const ratingSelect=match.querySelector('.rating-widget select');
-        if(ratingSelect){
-          ratingSelect.focus({preventScroll:true});
-        }else if(!match.querySelector('.rating-widget')){
-          alertUser('ใบงาน '+targetRatingJobId+' ยังไม่อยู่ในสถานะปิดงาน',true);
-        }
-      }else{
-        alertUser('ไม่พบใบงานในบัญชี LINE นี้ กรุณาเปิดด้วยบัญชี LINE ที่ใช้แจ้งซ่อม',true);
-      }
+      const target=mineJobs.find(job=>job.id===targetRatingJobId);
+      mineQuery='';$('mineSearch').value='';
+      mineFilter=target&&statusGroup(target.status)==='done'?'done':'all';
+      document.querySelectorAll('#mineFilters [data-filter]').forEach(b=>{
+        const active=b.dataset.filter===mineFilter;
+        b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));
+      });
+      if(!target)alertUser('ไม่พบใบงานในบัญชี LINE นี้ กรุณาเปิดด้วยบัญชี LINE ที่ใช้แจ้งซ่อม',true);
     }
-  }catch(error){$('mineList').textContent='โหลดรายการไม่สำเร็จ';alertUser(error.message);}
-  finally{loadingMine=false;setLoading(b,false);}
+    countGroups();renderMine();
+  }catch(error){
+    list.replaceChildren();
+    const msg=document.createElement('div');msg.className='empty';msg.textContent='โหลดรายการไม่สำเร็จ กรุณาลองอีกครั้ง';list.append(msg);
+    alertUser(error.message||'ไม่สามารถโหลดรายการงานได้');
+  }finally{loadingMine=false;setLoading(button,false);}
 }
 async function compressPhoto(file){
   if(!/^image\/(jpeg|png|webp|heic|heif)$/.test(file.type))throw new Error('รองรับเฉพาะ JPEG, PNG และ WebP');
@@ -152,6 +225,17 @@ async function init(){
   $('tabCreate').addEventListener('click',()=>showTab('create'));
   $('tabMine').addEventListener('click',()=>showTab('mine'));
   $('refreshBtn').addEventListener('click',loadMine);
+  $('mineFilters').addEventListener('click',event=>{
+    const filter=event.target.closest('[data-filter]');
+    if(!filter||!$('mineFilters').contains(filter))return;
+    targetRatingJobId=''; // User deliberately switches away from a deep-linked ticket.
+    selectMineFilter(filter.dataset.filter);
+  });
+  $('mineSearch').addEventListener('input',event=>{
+    mineQuery=event.target.value;
+    targetRatingJobId='';
+    renderMine();
+  });
   $('repairForm').addEventListener('submit',submitForm);
   $('photos').addEventListener('change',refreshPhotoPreview);
   $('viewMineBtn').addEventListener('click',()=>showTab('mine'));
@@ -159,9 +243,9 @@ async function init(){
   $('friendBtn').addEventListener('click',async()=>{
     try{if(typeof window.liff?.requestFriendship==='function'&&window.liff.isInClient())
         await window.liff.requestFriendship();
-      else window.open('https://line.me/R/ti/p/@281xcsng','_blank','noopener');
+      else window.open('https://line.me/R/ti/p/@281xcsnq','_blank','noopener');
       await checkFriendship();
-    }catch(_){window.open('https://line.me/R/ti/p/@281xcsng','_blank','noopener');}
+    }catch(_){window.open('https://line.me/R/ti/p/@281xcsnq','_blank','noopener');}
   });
   if(!/^\d{5,}-[A-Za-z0-9]+$/.test(String(cfg.liffId||''))){
     $('identity').textContent='⚠️ ยังไม่ได้ตั้ง LIFF ID';alertUser('กรุณาตั้งค่า liffId ใน config.js');return;

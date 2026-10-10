@@ -8,3 +8,91 @@
 .rating-widget select,.rating-widget input{width:100%;min-height:42px;padding:9px 11px;border:1px solid #cbd5e1;border-radius:9px}
 .rating-widget button{max-width:240px}
 #photoNotice{margin:12px 0;padding:10px 12px;border-radius:10px;background:#fff7ed;color:#9a3412}
+
+
+/* ========================================================================
+   V3 Public Portal Refresh — purely visual CSS; APIs are unchanged.
+   ======================================================================== */
+[hidden]{display:none!important}
+body{background:linear-gradient(180deg,#edf8fa 0,#eff5f9 350px,#f3f7fa 100%)}
+.container{max-width:950px}
+.hero{padding:36px 0 89px;background:linear-gradient(119deg,#082e4a 0%,#0e4b62 56%,#0c857f 100%)}
+.hero:before{content:"";position:absolute;right:10%;bottom:-170px;width:300px;height:300px;border:1px solid #b8fffa35;border-radius:50%}
+.hero-layout{display:flex;justify-content:space-between;align-items:center;gap:20px}
+.hero-copy{position:relative;z-index:1}
+.hero h1{font-size:clamp(32px,5vw,49px);line-height:1.2}
+.hero-art{flex:0 0 212px;min-height:162px;display:grid;place-content:center;gap:8px;text-align:center;border:1px solid #d9fffc40;background:linear-gradient(135deg,#ffffff24,#ffffff0b);box-shadow:0 10px 35px #06354a3d;border-radius:25px;transform:rotate(3deg)}
+.hero-art-icon{font-size:78px;line-height:1}
+.hero-art-caption{font-size:12px;color:#ddfff7;font-weight:700}
+main.container{margin-top:-55px}
+.tabs{border:1px solid #d7e7ea;padding:6px;border-radius:18px}
+.tabs button{min-height:50px;transition:background .15s,color .15s}
+.tabs button:focus-visible,.filter-chip:focus-visible,.btn:focus-visible{outline:3px solid #ffbb56;outline-offset:3px}
+.panel{padding:28px}
+.panelhead{margin-bottom:17px}
+.panelhead h2{font-size:25px}
+.form-steps{display:flex;align-items:center;justify-content:center;gap:13px;background:#f2f9fa;border:1px solid #e2eff1;border-radius:13px;padding:10px 12px;margin-bottom:16px;flex-wrap:wrap}
+.form-steps span{display:flex;align-items:center;gap:6px;font-size:12px;color:#457180;font-weight:800}
+.form-steps b{background:#d6f1ed;border-radius:50%;width:23px;height:23px;display:grid;place-items:center;color:#087e77;font-size:12px}
+.form-steps .step-arrow{color:#a2bbc3;font-size:20px}
+.form-section{border:1px solid #e3edf0;border-radius:18px;padding:18px;margin-bottom:16px;background:linear-gradient(180deg,#fff 75%,#fbfefe 100%)}
+.form-section-last{margin-bottom:0}
+.section-heading{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.section-heading h3{color:#123f52;margin:0;font-size:17px}
+.section-heading p{color:#7390a1;font-size:12px;margin:1px 0 0}
+.section-number{display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:12px;background:#e3f6f3;color:#0a897c;font-weight:900;font-size:13px}
+.field label{font-size:14px}
+.field input,.field select,.field textarea{border-radius:12px;min-height:50px;background:#fbfdfe}
+.field textarea{min-height:125px}
+.upload-surface{position:relative;border:1.5px dashed #a4c7d3;border-radius:14px;padding:15px;background:#f7fcfc;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px}
+.upload-surface .upload-symbol{font-size:28px;color:#078b91;background:#e1f4f4;border-radius:12px;width:45px;height:45px;display:grid;place-items:center}
+.upload-surface strong{display:block;color:#17576b;font-size:14px}
+.upload-surface span:not(.upload-symbol){display:block;color:#7390a1;font-size:11px}
+.upload-surface input[type=file]{grid-column:1/-1;width:100%;max-width:100%;height:auto;min-height:40px;background:white;font-size:12px;padding:9px;cursor:pointer}
+.upload-surface input::file-selector-button{border:0;background:#d5f0ee;color:#06716f;font-weight:800;border-radius:8px;padding:8px 11px;margin-right:10px}
+.upload-surface input:focus-visible{outline:3px solid #51bfb3}
+.photos-preview{margin-top:10px}
+#submitBtn{display:block;font-size:16px;min-height:54px;border-radius:13px;margin-top:19px}
+#submitBtn span{font-size:21px}
+.consent{border-radius:13px}
+.mine-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.mine-search{position:relative;display:block}
+.mine-search input{width:100%;min-height:48px;border:1px solid #cfdfe7;border-radius:12px;padding:10px 12px 10px 36px;outline:none;color:#1c465d;background:#fbfeff;font:inherit;font-size:14px}
+.mine-search input:focus{border-color:#13979b;box-shadow:0 0 0 3px #10a3a329}
+.search-icon{position:absolute;top:9px;left:12px;font-size:24px;color:#71909e;line-height:1}
+.mine-tools .btn{height:48px;white-space:nowrap}
+.mine-overview{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.overview-card{border:1px solid #deebef;border-radius:13px;background:linear-gradient(160deg,#f4fafc,#fff);padding:11px 14px;min-height:78px;display:flex;flex-direction:column;gap:3px}
+.overview-card:nth-child(2){background:#fffaf0;border-color:#f8e7c2}
+.overview-card:nth-child(3){background:#effaf3;border-color:#d6eddd}
+.overview-card span{font-size:12px;color:#688597;font-weight:750}
+.overview-card strong{font-size:25px;line-height:1.2;color:#17405b}
+.overview-card:nth-child(2) strong{color:#b17613}
+.overview-card:nth-child(3) strong{color:#168051}
+.status-section-label{font-size:13px;font-weight:800;color:#3d6374;margin:20px 0 9px}
+.status-filters{display:flex;gap:7px;overflow:auto;scrollbar-width:thin;padding-bottom:4px;overscroll-behavior-x:contain}
+.filter-chip{white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:7px;border:1px solid #d6e5eb;background:#f6fafb;color:#507487;border-radius:999px;font-size:12px;font-weight:800;min-height:39px;padding:6px 11px}
+.filter-chip span{display:grid;place-items:center;min-width:22px;height:22px;border-radius:50%;background:#e6eff3;color:#476f80;font-size:11px;padding:0 4px}
+.filter-chip.active{border-color:#008f91;background:#087c86;color:#fff;box-shadow:0 4px 12px #008f9126}
+.filter-chip.active span{background:#ffffff37;color:#fff}
+.mine-list-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:20px 0 9px;color:#1c4960}
+.mine-list-head strong{font-size:15px}
+.mine-list-head span{color:#68899b;font-size:12px}
+.list{margin-top:0}
+.job{padding:17px 17px 15px;margin-bottom:11px;border:1px solid #dce9ef;border-radius:16px;background:#fff;box-shadow:0 5px 17px #16496509}
+.job-top{margin-bottom:9px;gap:9px}
+.job-title{font-size:16px}
+.job-type{font-weight:800;color:#24556a;font-size:14px;margin-bottom:6px}
+.job-meta{line-height:1.7;white-space:normal;margin-top:5px}
+.job-meta-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:2px;overflow-wrap:anywhere}
+.job-meta-label{flex:0 0 auto;font-weight:700;color:#557688}
+.job-updated{border-top:1px solid #ebf1f3;margin-top:11px;padding-top:9px;font-size:12px;color:#8a9ba6}
+.pill{font-size:11px;max-width:100%;white-space:normal;text-align:center}
+.pill.active{background:#e2f2ff;color:#236c9f}
+.pill.parts{background:#fff4d9;color:#9b6412}
+.empty{background:#f8fcfd;border-radius:15px;line-height:1.6}
+.rating-widget{border-radius:13px;background:#f1fbf6}
+.rating-deeplink-target{border-color:#0baf9c;box-shadow:0 0 0 3px #12ac9b22}
+.sr-only{position:absolute;width:1px;height:1px;clip:rect(0,0,0,0);overflow:hidden;white-space:nowrap}
+@media (max-width:680px){.hero-art{display:none}.hero{padding:27px 0 73px}.hero h1{font-size:clamp(31px,7vw,40px)}.panel{padding:18px 13px}.form-section{padding:13px 12px;border-radius:14px}.form-steps{gap:5px}.form-steps span{font-size:10px}.form-steps b{height:21px;width:21px;font-size:11px}.section-heading p{font-size:11px}.mine-overview{gap:6px}.overview-card{min-height:74px;padding:10px 9px}.overview-card strong{font-size:22px}.overview-card span{font-size:11px}.mine-search input{font-size:12px}.mine-tools .btn{padding:8px 10px;font-size:12px}.job{padding:14px 12px}.mine-heading{margin-bottom:15px}}
+@media (max-width:360px){.form-steps .step-arrow{display:none}.form-steps{justify-content:space-around}.mine-tools{grid-template-columns:1fr}.mine-overview{grid-template-columns:repeat(3,minmax(0,1fr))}}
