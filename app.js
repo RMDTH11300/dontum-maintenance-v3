@@ -109,23 +109,76 @@ function renderMine(){
     const formatted=date&&!Number.isNaN(date.getTime())?date.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}):'-';
     updated.textContent='อัปเดตล่าสุด: '+formatted;
     card.append(top,type,meta,updated);
-    // Keep the same rating API and the one-rating-per-closed-ticket server rule.
+    // One assessment per closed ticket; new jobs use three 1-4 star questions.
     if(job.status==='ปิดงาน'){
-      const wrap=document.createElement('div');wrap.className='rating-widget';
-      if(job.rating){wrap.textContent='⭐ ประเมินแล้ว '+job.rating+'/5 คะแนน';}
-      else{
-        const label=document.createElement('label');label.textContent='⭐ ประเมินความพึงพอใจหลังปิดงาน';
-        const select=document.createElement('select');select.setAttribute('aria-label','คะแนนความพึงพอใจ');
-        [5,4,3,2,1].forEach(n=>{const opt=document.createElement('option');opt.value=n;opt.textContent='⭐'.repeat(n)+' ('+n+'/5)';select.append(opt);});
-        const comment=document.createElement('input');comment.maxLength=500;comment.placeholder='ความคิดเห็น (ไม่บังคับ)';comment.setAttribute('aria-label','ความคิดเห็น');
-        const button=document.createElement('button');button.className='btn secondary';button.type='button';button.textContent='ส่งคะแนน';
-        button.addEventListener('click',async()=>{
-          button.disabled=true;
-          try{await api('rate',{id:job.id,score:Number(select.value),comment:comment.value});
-            alertUser('ขอบคุณสำหรับการประเมินงาน '+job.id,true);await loadMine();
-          }catch(e){alertUser(e.message);button.disabled=false;}
+      const wrap=document.createElement('div');wrap.className='rating-widget survey4-widget';
+      const existing=job.rating;
+      if(existing&&typeof existing==='object'&&existing.service){
+        const summary=document.createElement('div');summary.className='survey4-complete';
+        summary.textContent='✅ ประเมินแล้ว เฉลี่ย '+Number(existing.average).toFixed(2)+'/4 ดาว';
+        wrap.append(summary);
+        [['พฤติกรรมการบริการของเจ้าหน้าที่ซ่อมบำรุง',existing.service],
+         ['ผลการซ่อม',existing.repair],['ระยะเวลาในการซ่อม',existing.time]]
+          .forEach(([label,n])=>{
+            const line=document.createElement('div');line.className='survey4-result';
+            line.textContent=label+' : '+n+'/4 ดาว';wrap.append(line);
+          });
+        if(existing.comment){const p=document.createElement('p');p.className='survey4-comment';p.textContent='ความคิดเห็น: '+existing.comment;wrap.append(p);}
+      }else if(existing){
+        wrap.textContent='✅ ประเมินแล้ว '+existing+'/5 ดาว (รูปแบบเดิม)';
+      }else{
+        const heading=document.createElement('h3');heading.textContent='⭐ ประเมินความพึงพอใจงานซ่อม';
+        const help=document.createElement('p');help.className='survey4-help';
+        help.textContent='กรุณาให้คะแนนทั้ง 3 หัวข้อ (4 = ดีมาก, 3 = ดี, 2 = พอใจ, 1 = ปรับปรุง)';
+        wrap.append(heading,help);
+        const answers={service:0,repair:0,time:0};
+        const questions=[['service','พฤติกรรมการบริการของเจ้าหน้าที่ซ่อมบำรุง'],
+          ['repair','ผลการซ่อม'],['time','ระยะเวลาในการซ่อม']];
+        questions.forEach(([key,title],i)=>{
+          const field=document.createElement('div');field.className='survey4-question';
+          const label=document.createElement('div');label.className='survey4-question-title';
+          label.textContent=(i+1)+'. '+title+' *';
+          const choices=document.createElement('div');choices.className='survey4-stars';
+          const items=[];
+          for(let value=1;value<=4;value++){
+            const button=document.createElement('button');button.type='button';button.className='survey4-star';
+            button.textContent='★';button.dataset.value=String(value);
+            button.setAttribute('aria-label',title+' '+value+' ดาว');
+            button.setAttribute('aria-pressed','false');
+            button.addEventListener('click',()=>{
+              answers[key]=value;
+              items.forEach((b,n)=>{
+                b.classList.toggle('selected',n<value);
+                b.setAttribute('aria-pressed',String(n+1===value));
+              });
+              choiceText.textContent=value+' / 4 ดาว';
+            });
+            items.push(button);choices.append(button);
+          }
+          const choiceText=document.createElement('span');choiceText.className='survey4-selected';
+          choiceText.textContent='ยังไม่ให้คะแนน';
+          const stars=document.createElement('div');stars.className='survey4-choices';
+          stars.append(choices,choiceText);field.append(label,stars);wrap.append(field);
         });
-        wrap.append(label,select,comment,button);
+        const commentLabel=document.createElement('label');commentLabel.textContent='ความคิดเห็น / ข้อเสนอแนะ (ไม่บังคับ)';
+        const comment=document.createElement('textarea');comment.rows=3;comment.maxLength=500;
+        comment.placeholder='พิมพ์ความคิดเห็นหรือข้อเสนอแนะเพิ่มเติม';
+        comment.setAttribute('aria-label','ความคิดเห็นหรือข้อเสนอแนะ');
+        const button=document.createElement('button');button.className='btn primary';button.type='button';
+        button.textContent='ส่งแบบประเมิน';
+        const feedback=document.createElement('p');feedback.className='survey4-feedback';feedback.setAttribute('role','status');
+        button.addEventListener('click',async()=>{
+          if(Object.values(answers).some(n=>n<1||n>4)){
+            feedback.textContent='กรุณาให้คะแนนครบทั้ง 3 หัวข้อ';return;
+          }
+          feedback.textContent='กำลังส่งแบบประเมิน…';button.disabled=true;
+          try{
+            await api('rate',{id:job.id,score:answers,comment:comment.value});
+            alertUser('ขอบคุณสำหรับการประเมินงาน '+job.id,true);
+            await loadMine();
+          }catch(error){feedback.textContent=String(error?.message||'ส่งแบบประเมินไม่สำเร็จ');button.disabled=false;}
+        });
+        wrap.append(commentLabel,comment,button,feedback);
       }
       card.append(wrap);
     }
@@ -136,8 +189,8 @@ function renderMine(){
     const match=Array.from(list.children).find(el=>el.dataset.jobId===targetRatingJobId);
     if(match){
       match.scrollIntoView({behavior:'smooth',block:'center'});
-      const select=match.querySelector('.rating-widget select');
-      if(select)select.focus({preventScroll:true});
+      const star=match.querySelector('.survey4-star');
+      if(star)star.focus({preventScroll:true});
       else if(!match.querySelector('.rating-widget'))alertUser('ใบงาน '+targetRatingJobId+' ยังไม่อยู่ในสถานะปิดงาน',true);
     }
   }

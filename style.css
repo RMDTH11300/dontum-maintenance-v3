@@ -96,3 +96,27 @@ main.container{margin-top:-55px}
 .sr-only{position:absolute;width:1px;height:1px;clip:rect(0,0,0,0);overflow:hidden;white-space:nowrap}
 @media (max-width:680px){.hero-art{display:none}.hero{padding:27px 0 73px}.hero h1{font-size:clamp(31px,7vw,40px)}.panel{padding:18px 13px}.form-section{padding:13px 12px;border-radius:14px}.form-steps{gap:5px}.form-steps span{font-size:10px}.form-steps b{height:21px;width:21px;font-size:11px}.section-heading p{font-size:11px}.mine-overview{gap:6px}.overview-card{min-height:74px;padding:10px 9px}.overview-card strong{font-size:22px}.overview-card span{font-size:11px}.mine-search input{font-size:12px}.mine-tools .btn{padding:8px 10px;font-size:12px}.job{padding:14px 12px}.mine-heading{margin-bottom:15px}}
 @media (max-width:360px){.form-steps .step-arrow{display:none}.form-steps{justify-content:space-around}.mine-tools{grid-template-columns:1fr}.mine-overview{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+
+/* Satisfaction survey: 3 questions with a 4-point scale (mobile-friendly). */
+.survey4-widget{padding:18px;gap:13px;background:linear-gradient(180deg,#f0fbf6,#fff);border:1px solid #bce5d1}
+.survey4-widget h3{font-size:17px;margin:0;color:#164c41}
+.survey4-help{margin:0;font-size:13px;line-height:1.6;color:#53756d}
+.survey4-question{border:1px solid #dceee4;background:#fff;border-radius:12px;padding:11px 12px}
+.survey4-question-title{font-size:14px;font-weight:800;color:#214f40;margin-bottom:7px}
+.survey4-choices{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.survey4-stars{display:flex;gap:4px}
+.survey4-star{font-family:system-ui,sans-serif;display:grid;place-items:center;width:43px;height:45px;padding:0;border:0;border-radius:9px;background:#f0f4f5;color:#b7c7c5;font-size:32px;line-height:1;transition:transform .1s,color .1s}
+.survey4-star.selected{color:#eeac1f;background:#fff4d9}
+.survey4-star:focus-visible{outline:3px solid #09887a;outline-offset:2px}
+.survey4-star:active{transform:scale(.95)}
+.survey4-selected{font-size:12px;color:#486b61;font-weight:700}
+.survey4-widget textarea{display:block;width:100%;resize:vertical;min-height:83px;border:1px solid #cbded5;border-radius:11px;background:white;padding:10px 12px;font:inherit}
+.survey4-widget label{font-size:14px;font-weight:800}
+.survey4-widget .btn{width:100%;max-width:none;margin-top:2px}
+.survey4-feedback{font-size:13px;color:#a03922;margin:0;min-height:0}
+.survey4-feedback:empty{display:none}
+.survey4-result{font-size:13px;color:#2e6351}
+.survey4-comment{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;color:#526d61;margin:0}
+.survey4-complete{font-weight:850;color:#18794e}
+@media(max-width:370px){.survey4-star{width:40px;height:42px;font-size:29px}.survey4-choices{gap:7px}}
