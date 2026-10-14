@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="style.css?v=20261012-survey4">
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
   <script src="config.js" defer></script>
-  <script src="app.js?v=20261012-survey4" defer></script>
+  <script src="app.js?v=20261014-manual-reporter" defer></script>
 </head>
 <body>
   <header class="hero">
@@ -40,7 +40,7 @@
       <form id="repairForm" autocomplete="on">
         <div class="form-section"><div class="section-heading"><span class="section-number">01</span><div><h3>ข้อมูลผู้แจ้งและสถานที่</h3><p>กรอกชื่อและระบุจุดที่ต้องการให้ช่างเข้าซ่อม</p></div></div>
           <div class="fields">
-            <div class="field"><label for="reporter">ชื่อผู้แจ้ง <span>*</span></label><input id="reporter" name="reporter" maxlength="100" minlength="2" required placeholder="ชื่อ–สกุล"></div>
+            <div class="field"><label for="reporter">ชื่อ–นามสกุลผู้แจ้ง <span>*</span></label><input id="reporter" name="reporter" type="text" maxlength="100" minlength="3" required autocomplete="off" aria-describedby="reporterHelp" placeholder="พิมพ์ชื่อและนามสกุลจริง เช่น สมชาย ใจดี"><small id="reporterHelp">กรุณาพิมพ์ชื่อและนามสกุลด้วยตนเอง ระบบจะไม่ใช้ชื่อจาก LINE</small></div>
             <div class="field"><label for="department">หน่วยงาน <span>*</span></label><input id="department" name="department" maxlength="100" minlength="2" required placeholder="เช่น งานกายภาพบำบัด"></div>
             <div class="field"><label for="category">ประเภทงาน <span>*</span></label><select id="category" name="category" required><option value="">เลือกประเภทงาน</option><option>ไฟฟ้า</option><option>ประปา</option><option>เครื่องปรับอากาศ</option><option>อาคาร/สถานที่</option><option>คอมพิวเตอร์/เครือข่าย</option><option>เครื่องมือ/อุปกรณ์</option><option>อื่น ๆ</option></select></div>
             <div class="field"><label for="location">สถานที่/ห้อง <span>*</span></label><input id="location" name="location" maxlength="150" required placeholder="อาคาร ชั้น หรือเลขห้อง"></div>

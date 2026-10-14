@@ -254,6 +254,11 @@ async function submitForm(event){
   try{
     const form=new FormData($('repairForm'));
     const data=Object.fromEntries(form.entries());
+    data.reporter=String(data.reporter||'').trim().replace(/\s+/g,' ');
+    if(!/^\S+\s+\S+/.test(data.reporter)){
+      $('reporter').focus();
+      throw new Error('กรุณาพิมพ์ชื่อและนามสกุลจริงของผู้แจ้ง เช่น สมชาย ใจดี');
+    }
     delete data.photos;
     const files=Array.from($('photos').files||[]);
     if(files.length>3)throw new Error('แนบรูปได้สูงสุด 3 รูป');
@@ -315,8 +320,7 @@ async function init(){
     verifiedReady=true;$('submitBtn').disabled=false;
     const profile=await window.liff.getProfile().catch(()=>null);
     $('identity').textContent='✓ เชื่อมต่อ LINE แล้ว'+(profile?.displayName?' · '+profile.displayName:'');
-    // Reporter can change this to their actual hospital name.
-    if(profile?.displayName)$('reporter').value=profile.displayName.slice(0,100);
+    // Reporter name must always be typed by the requester, never copied from LINE.
     await checkFriendship();
     // Navigate to the exact ticket only after LIFF init, login, and auth are ready.
     targetRatingJobId=ratingTargetFromUrl();
